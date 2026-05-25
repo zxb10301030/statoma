@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BlockMath } from "react-katex";
 import { notFound } from "next/navigation";
+import { ConfidenceIntervalCalculator } from "@/components/calculator/ConfidenceIntervalCalculator";
 import { CalculatorLayout } from "@/components/calculator/CalculatorLayout";
 import { PValueCalculator } from "@/components/calculator/PValueCalculator";
 import { RelatedCalculators } from "@/components/calculator/RelatedCalculators";
@@ -65,6 +66,29 @@ const pValueFaqs = [
   },
 ];
 
+const confidenceIntervalFaqs = [
+  {
+    question: "What does a confidence interval show?",
+    answer:
+      "A confidence interval gives a range of plausible values for a population parameter based on the estimate, standard error, and confidence level.",
+  },
+  {
+    question: "Does a 95% interval mean the parameter has a 95% chance of being inside?",
+    answer:
+      "No. In frequentist terms, the method would capture the true parameter in about 95% of repeated samples analyzed the same way.",
+  },
+  {
+    question: "Why does a higher confidence level make the interval wider?",
+    answer:
+      "Higher confidence requires covering more of the reference distribution, so the critical value and margin of error increase.",
+  },
+  {
+    question: "Can a proportion interval go below 0 or above 1?",
+    answer:
+      "The simple normal approximation can do that near 0 or 1. Treat such results as a warning that a different interval method may be better.",
+  },
+];
+
 type CalculatorPageProps = {
   params: Promise<{
     slug: string;
@@ -112,6 +136,10 @@ export default async function CalculatorStubPage({
 
   if (calculator.slug === "p-value") {
     return <PValuePage calculator={calculator} />;
+  }
+
+  if (calculator.slug === "confidence-interval") {
+    return <ConfidenceIntervalPage calculator={calculator} />;
   }
 
   const statusQuestion = `Is the ${calculator.name} available yet?`;
@@ -621,6 +649,221 @@ function PValueEducationalContent() {
             {
               title: "Calling a p-value the chance of randomness",
               body: "A p-value is calculated under a model. It is not a general probability that the result is random, false, or meaningless.",
+            },
+          ].map((mistake) => (
+            <section key={mistake.title} className="rounded-lg border p-4">
+              <h3 className="font-semibold">{mistake.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {mistake.body}
+              </p>
+            </section>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ConfidenceIntervalPage({
+  calculator,
+}: {
+  calculator: NonNullable<ReturnType<typeof getCalculatorBySlug>>;
+}) {
+  const jsonLd = [
+    softwareApplicationJsonLd({
+      name: calculator.name,
+      description: calculator.description,
+      path: "/calculators/confidence-interval/",
+    }),
+    faqPageJsonLd(confidenceIntervalFaqs),
+  ];
+
+  return (
+    <div className="container py-10 md:py-14">
+      {jsonLd.map((entry) => (
+        <StructuredData key={entry["@type"]} data={entry} />
+      ))}
+      <article className="space-y-12">
+        <div className="max-w-3xl space-y-4">
+          <p className="text-sm font-medium uppercase tracking-normal text-primary">
+            Confidence interval calculator
+          </p>
+          <h1 className="text-3xl font-semibold tracking-normal md:text-5xl">
+            Confidence interval calculator
+          </h1>
+          <p className="text-lg leading-8 text-muted-foreground">
+            Estimate uncertainty around a mean, proportion, difference in
+            means, or difference in proportions from summary statistics.
+          </p>
+        </div>
+
+        <CalculatorLayout>
+          <div className="space-y-8">
+            <ConfidenceIntervalCalculator />
+            <section className="space-y-3">
+              <h2 className="text-2xl font-semibold">
+                Interpreting the result
+              </h2>
+              <p className="leading-7 text-muted-foreground">
+                A confidence interval combines the point estimate with a margin
+                of error. The lower and upper bounds show a range of values that
+                are reasonably compatible with the data under the selected
+                method. The interval does not prove that every value inside is
+                equally likely, and it does not make values outside impossible.
+                It is a disciplined way to show estimation uncertainty.
+              </p>
+            </section>
+          </div>
+          <aside className="space-y-5 rounded-lg border bg-muted/30 p-5">
+            <h2 className="text-lg font-semibold">Before you calculate</h2>
+            <ul className="space-y-3 text-sm leading-6 text-muted-foreground">
+              <li>Use summary statistics from the same sample or comparison.</li>
+              <li>Pick the confidence level before reading the interval.</li>
+              <li>Check whether a normal approximation is reasonable.</li>
+              <li>Report the estimate and margin of error with the bounds.</li>
+            </ul>
+          </aside>
+        </CalculatorLayout>
+
+        <ConfidenceIntervalEducationalContent />
+        <FAQ items={confidenceIntervalFaqs} />
+        <RelatedCalculators currentSlug="confidence-interval" />
+      </article>
+    </div>
+  );
+}
+
+function ConfidenceIntervalEducationalContent() {
+  return (
+    <div className="max-w-3xl space-y-10">
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">What is this test?</h2>
+        <p className="leading-7 text-muted-foreground">
+          A confidence interval is an estimation tool, not a hypothesis test by
+          itself. It starts with a point estimate, such as a sample mean, sample
+          proportion, or difference between two groups. It then adds and
+          subtracts a margin of error based on the standard error and confidence
+          level. The result is an interval that communicates both the estimate
+          and the uncertainty around it.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          Statoma currently supports four common summary-statistic intervals:
+          a mean interval using a t critical value, a proportion interval using
+          a normal approximation, a difference in means interval using Welch
+          degrees of freedom, and a difference in proportions interval using a
+          normal approximation. These are standard teaching and reporting forms,
+          but they still rely on sampling assumptions and sensible input data.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          The frequentist interpretation is about the method, not a fixed
+          parameter moving around. If a 95% confidence interval method were
+          repeated across many comparable samples, about 95% of the intervals
+          would contain the true population parameter. For one completed study,
+          the interval is better read as a range of plausible values generated
+          by that method and dataset.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">When to use it</h2>
+        <ul className="list-disc space-y-3 pl-6 leading-7 text-muted-foreground">
+          <li>
+            Use a mean interval when the target is a population average and you
+            have a sample mean, sample standard deviation, and sample size.
+          </li>
+          <li>
+            Use a proportion interval when the target is a population share or
+            rate based on a count of successes out of a sample.
+          </li>
+          <li>
+            Use a difference in means interval when comparing two independent
+            group averages from summary statistics.
+          </li>
+          <li>
+            Use a difference in proportions interval when comparing two
+            independent rates, shares, or conversion proportions.
+          </li>
+          <li>
+            Use a wider confidence level, such as 99%, when you need a more
+            conservative interval and can tolerate less precision.
+          </li>
+        </ul>
+        <p className="leading-7 text-muted-foreground">
+          Confidence intervals are especially useful when practical size matters
+          more than a yes-or-no threshold. A p-value can say whether a null
+          value looks surprising, but an interval shows the range of effect
+          sizes still compatible with the data. That range is often what makes
+          a result actionable.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">How it works</h2>
+        <p className="leading-7 text-muted-foreground">
+          Most introductory confidence intervals share the same structure. The
+          estimate is the center. The standard error measures sampling
+          variability. The critical value comes from a reference distribution
+          and expands or contracts with the confidence level. The margin of
+          error is the critical value multiplied by the standard error.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`\text{estimate} \pm \text{critical value} \times \text{standard error}`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          Mean intervals use a t critical value because the population standard
+          deviation is unknown and estimated by the sample standard deviation.
+          Proportion intervals in this calculator use the normal approximation.
+          Difference in means intervals use a Welch-style standard error and
+          degrees-of-freedom approximation, which avoids assuming equal
+          population variances. Difference in proportions intervals combine the
+          sampling variance from both groups.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Worked example</h2>
+        <p className="leading-7 text-muted-foreground">
+          Suppose a class has a sample mean score of 82.4, a sample standard
+          deviation of 6, and a sample size of 36. For a 95% mean interval, the
+          standard error is 6 divided by the square root of 36, which equals 1.
+          The t critical value with 35 degrees of freedom is about 2.03, so the
+          margin of error is about 2.03 points. The interval runs from about
+          80.37 to 84.43.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          The interval should not be described as saying there is a 95% chance
+          that the true mean lies between those two numbers. The true mean is
+          treated as fixed in this framework. The 95% describes the long-run
+          performance of the interval method. In a report, the better phrasing
+          is that the 95% confidence interval for the population mean score is
+          80.37 to 84.43, assuming the sampling design and model conditions are
+          reasonable.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Common mistakes</h2>
+        <div className="grid gap-4">
+          {[
+            {
+              title: "Calling the interval a probability statement",
+              body: "A 95% confidence interval does not mean the fixed parameter has a 95% probability of being inside this particular interval.",
+            },
+            {
+              title: "Ignoring sample design",
+              body: "The formula assumes the summary statistics came from a sampling process that supports the standard error calculation.",
+            },
+            {
+              title: "Using a proportion approximation near the boundaries",
+              body: "The simple normal proportion interval can behave poorly when the observed proportion is close to 0 or 1, or when sample size is small.",
+            },
+            {
+              title: "Reporting only the margin of error",
+              body: "The margin of error needs the point estimate and confidence level to be meaningful.",
+            },
+            {
+              title: "Treating overlap as a formal test",
+              body: "Two intervals overlapping or not overlapping is not the same as a planned hypothesis test for a difference.",
             },
           ].map((mistake) => (
             <section key={mistake.title} className="rounded-lg border p-4">

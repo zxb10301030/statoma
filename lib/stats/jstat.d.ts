@@ -1,10 +1,12 @@
 declare module "jstat" {
-export const jStat: {
+  export const jStat: {
     normal: {
       cdf(value: number, mean: number, standardDeviation: number): number;
+      inv(probability: number, mean: number, standardDeviation: number): number;
     };
     studentt: {
       cdf(value: number, degreesOfFreedom: number): number;
+      inv(probability: number, degreesOfFreedom: number): number;
     };
     chisquare: {
       cdf(value: number, degreesOfFreedom: number): number;
