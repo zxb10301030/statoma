@@ -4,11 +4,18 @@ const contactEmail = "contact@statoma.com";
 const organizationId = `${absoluteUrl("/")}#organization`;
 const websiteId = `${absoluteUrl("/")}#website`;
 const educatorId = `${absoluteUrl("/about/")}#educator`;
+const calculatorListId = `${absoluteUrl("/calculators/")}#calculator-list`;
 
 type SoftwareApplicationInput = {
   name: string;
   description: string;
   path: string;
+};
+
+type CalculatorListInput = {
+  slug: string;
+  name: string;
+  description: string;
 };
 
 type FAQItem = {
@@ -90,6 +97,40 @@ export function websiteJsonLd() {
     publisher: {
       "@id": organizationId,
     },
+  };
+}
+
+export function calculatorItemListJsonLd(items: readonly CalculatorListInput[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": calculatorListId,
+    name: "Statoma statistics calculators",
+    description:
+      "A list of Statoma calculators for t-tests, p-values, confidence intervals, sample size planning, and chi-square tests.",
+    url: absoluteUrl("/calculators/"),
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => {
+      const url = absoluteUrl(`/calculators/${item.slug}/`);
+
+      return {
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+        url,
+        item: {
+          "@type": "SoftwareApplication",
+          name: item.name,
+          applicationCategory: "EducationalApplication",
+          operatingSystem: "Web",
+          description: item.description,
+          url,
+          publisher: {
+            "@id": organizationId,
+          },
+        },
+      };
+    }),
   };
 }
 

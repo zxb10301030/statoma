@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { CalculatorGrid } from "@/components/calculator/CalculatorGrid";
+import { StructuredData } from "@/components/content/StructuredData";
+import { calculators } from "@/lib/calculators";
+import { calculatorItemListJsonLd } from "@/lib/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata = createMetadata({
@@ -55,8 +58,11 @@ const choosingGuides = [
 ];
 
 export default function CalculatorsPage() {
+  const jsonLd = calculatorItemListJsonLd(calculators);
+
   return (
     <div className="container py-12 md:py-16">
+      <StructuredData data={jsonLd} />
       <div className="max-w-3xl space-y-3">
         <h1 className="text-3xl font-semibold tracking-normal md:text-4xl">
           All calculators
