@@ -18,7 +18,7 @@ describe("ConfidenceIntervalCalculator", () => {
 
     expect(screen.getByText("Lower bound")).toBeTruthy();
     expect(screen.getByText("Upper bound")).toBeTruthy();
-    expect(screen.getByText("80.3699")).toBeTruthy();
-    expect(screen.getByText("84.4301")).toBeTruthy();
+    expect(screen.getByText("80.37")).toBeTruthy();
+    expect(screen.getByText("84.43")).toBeTruthy();
   });
 });

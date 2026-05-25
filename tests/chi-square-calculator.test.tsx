@@ -16,6 +16,6 @@ describe("ChiSquareCalculator", () => {
     expect(screen.getByText("Chi-square statistic")).toBeTruthy();
     expect(screen.getByText("Degrees of freedom")).toBeTruthy();
     expect(screen.getByText("P-value")).toBeTruthy();
-    expect(screen.getByText("0.0821")).toBeTruthy();
+    expect(screen.getByText("0.08208")).toBeTruthy();
   });
 });

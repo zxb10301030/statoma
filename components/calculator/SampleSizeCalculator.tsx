@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatInteger, formatNumber } from "@/lib/format/number";
 import {
   meanMarginSampleSize,
   surveyProportionSampleSize,
@@ -612,18 +613,6 @@ function parseFields(values: FieldValues) {
   }
 
   return Object.fromEntries(parsedEntries) as Record<string, number>;
-}
-
-function formatInteger(value: number) {
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 4,
-  }).format(value);
 }
 
 function interpretResult(result: SampleSizeResult) {

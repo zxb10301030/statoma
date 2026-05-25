@@ -14,6 +14,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
+  formatNumber,
+  formatProbability,
+  formatPValue,
+} from "@/lib/format/number";
+import {
   calculatePValue,
   type PValueDistribution,
   type PValueResult,
@@ -234,7 +239,9 @@ function ResultSummary({
             />
             <Metric
               label="Cumulative probability"
-              value={formatNumber(calculation.result.cumulativeProbability)}
+              value={formatProbability(
+                calculation.result.cumulativeProbability,
+              )}
             />
             <Metric
               label="p-value"
@@ -254,7 +261,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="mt-1 break-words font-semibold text-foreground">{value}</dd>
+      <dd className="mt-1 break-words font-semibold text-foreground">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -343,24 +352,6 @@ function parseOptionalNumber(value: string) {
   }
 
   return parsed;
-}
-
-function formatNumber(value: number) {
-  if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) {
-    return value.toExponential(3);
-  }
-
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 4,
-  }).format(value);
-}
-
-function formatPValue(value: number) {
-  if (value < 0.0001) {
-    return "< 0.0001";
-  }
-
-  return formatNumber(value);
 }
 
 function interpretResult(result: PValueResult) {

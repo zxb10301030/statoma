@@ -8,6 +8,11 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  formatDegreesOfFreedom,
+  formatNumber,
+  formatPValue,
+} from "@/lib/format/number";
+import {
   chiSquareGoodnessOfFit,
   chiSquareTestOfIndependence,
   type ChiSquareResult,
@@ -177,11 +182,13 @@ function ResultSummary({
             />
             <Metric
               label="Degrees of freedom"
-              value={String(calculation.result.degreesOfFreedom)}
+              value={formatDegreesOfFreedom(
+                calculation.result.degreesOfFreedom,
+              )}
             />
             <Metric
               label="P-value"
-              value={formatProbability(calculation.result.pValue)}
+              value={formatPValue(calculation.result.pValue)}
             />
           </dl>
           <div className="space-y-4 text-sm leading-6 text-muted-foreground">
@@ -345,33 +352,10 @@ function parseMatrix(text: string, label: string) {
   return rows;
 }
 
-function formatNumber(value: number) {
-  if (
-    Math.abs(value) >= 1000 ||
-    (Math.abs(value) > 0 && Math.abs(value) < 0.001)
-  ) {
-    return value.toExponential(3);
-  }
-
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 4,
-  }).format(value);
-}
-
-function formatProbability(value: number) {
-  if (value > 0 && value < 0.0001) {
-    return value.toExponential(3);
-  }
-
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 4,
-  }).format(value);
-}
-
 function interpretResult(result: ChiSquareResult) {
   if (result.kind === "goodness-of-fit") {
-    return `The statistic sums each category contribution and compares it with a chi-square distribution with ${result.degreesOfFreedom} degrees of freedom. The p-value is ${formatProbability(result.pValue)}.`;
+    return `The statistic sums each category contribution and compares it with a chi-square distribution with ${formatDegreesOfFreedom(result.degreesOfFreedom)} degrees of freedom. The p-value is ${formatPValue(result.pValue)}.`;
   }
 
-  return `The expected table is calculated from row totals and column totals under independence. The p-value is ${formatProbability(result.pValue)} using ${result.degreesOfFreedom} degrees of freedom.`;
+  return `The expected table is calculated from row totals and column totals under independence. The p-value is ${formatPValue(result.pValue)} using ${formatDegreesOfFreedom(result.degreesOfFreedom)} degrees of freedom.`;
 }

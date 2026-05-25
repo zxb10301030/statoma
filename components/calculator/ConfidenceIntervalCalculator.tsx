@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  type Dispatch,
-  type SetStateAction,
-  useMemo,
-  useState,
-} from "react";
+import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatNumber, formatPercent } from "@/lib/format/number";
 import {
   differenceInMeansConfidenceInterval,
   differenceInProportionsConfidenceInterval,
@@ -446,8 +442,14 @@ function ResultSummary({
               label="Margin of error"
               value={formatNumber(calculation.result.marginOfError)}
             />
-            <Metric label="Lower bound" value={formatNumber(calculation.result.lower)} />
-            <Metric label="Upper bound" value={formatNumber(calculation.result.upper)} />
+            <Metric
+              label="Lower bound"
+              value={formatNumber(calculation.result.lower)}
+            />
+            <Metric
+              label="Upper bound"
+              value={formatNumber(calculation.result.upper)}
+            />
           </dl>
           <p className="text-sm leading-6 text-muted-foreground">
             {interpretResult(calculation.result)}
@@ -462,7 +464,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="mt-1 break-words font-semibold text-foreground">{value}</dd>
+      <dd className="mt-1 break-words font-semibold text-foreground">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -583,21 +587,8 @@ function parseFields(values: FieldValues) {
   return Object.fromEntries(parsedEntries) as Record<string, number>;
 }
 
-function formatNumber(value: number) {
-  if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) {
-    return value.toExponential(3);
-  }
-
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 4,
-  }).format(value);
-}
-
 function interpretResult(result: ConfidenceIntervalResult) {
-  const percentage = new Intl.NumberFormat("en", {
-    maximumFractionDigits: 1,
-    style: "percent",
-  }).format(result.confidenceLevel);
+  const percentage = formatPercent(result.confidenceLevel);
 
   return `The ${percentage} interval runs from ${formatNumber(result.lower)} to ${formatNumber(result.upper)}. In repeated samples analyzed the same way, this method would capture the target parameter about ${percentage} of the time.`;
 }

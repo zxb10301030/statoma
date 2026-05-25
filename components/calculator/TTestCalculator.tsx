@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  type Dispatch,
-  type SetStateAction,
-  useMemo,
-  useState,
-} from "react";
+import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +14,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  formatDegreesOfFreedom,
+  formatNumber,
+  formatPValue,
+} from "@/lib/format/number";
 import {
   independentTTest,
   oneSampleTTest,
@@ -62,8 +62,7 @@ const emptyTwoSample = {
 
 export function TTestCalculator() {
   const [mode, setMode] = useState<TTestMode>("one-sample");
-  const [alternative, setAlternative] =
-    useState<TTestAlternative>("two-sided");
+  const [alternative, setAlternative] = useState<TTestAlternative>("two-sided");
   const [oneSampleValues, setOneSampleValues] =
     useState<FieldValues>(emptyOneSample);
   const [pairedValues, setPairedValues] = useState<FieldValues>(emptyPaired);
@@ -71,11 +70,12 @@ export function TTestCalculator() {
     useState<FieldValues>(emptyTwoSample);
 
   const calculation = useMemo(
-    () => calculateActiveResult(mode, alternative, {
-      oneSampleValues,
-      pairedValues,
-      twoSampleValues,
-    }),
+    () =>
+      calculateActiveResult(mode, alternative, {
+        oneSampleValues,
+        pairedValues,
+        twoSampleValues,
+      }),
     [alternative, mode, oneSampleValues, pairedValues, twoSampleValues],
   );
 
@@ -124,7 +124,9 @@ export function TTestCalculator() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="two-sided">Difference is not 0</SelectItem>
-                <SelectItem value="greater">Difference is greater than 0</SelectItem>
+                <SelectItem value="greater">
+                  Difference is greater than 0
+                </SelectItem>
                 <SelectItem value="less">Difference is less than 0</SelectItem>
               </SelectContent>
             </Select>
@@ -237,7 +239,12 @@ export function TTestCalculator() {
         </TabsContent>
 
         <div className="flex justify-end">
-          <Button type="button" variant="ghost" size="sm" onClick={resetCurrentMode}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={resetCurrentMode}
+          >
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Reset current test
           </Button>
@@ -371,12 +378,21 @@ function ResultSummary({
         <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr]">
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <Metric label="Method" value={calculation.result.method} />
-            <Metric label="t statistic" value={formatNumber(calculation.result.t)} />
+            <Metric
+              label="t statistic"
+              value={formatNumber(calculation.result.t)}
+            />
             <Metric
               label="Degrees of freedom"
-              value={formatNumber(calculation.result.degreesOfFreedom)}
+              value={formatDegreesOfFreedom(
+                calculation.result.degreesOfFreedom,
+                { welch: calculation.result.method === "Welch t-test" },
+              )}
             />
-            <Metric label="p-value" value={formatPValue(calculation.result.pValue)} />
+            <Metric
+              label="p-value"
+              value={formatPValue(calculation.result.pValue)}
+            />
             <Metric
               label="Estimate"
               value={formatNumber(calculation.result.estimate)}
@@ -399,7 +415,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="mt-1 break-words font-semibold text-foreground">{value}</dd>
+      <dd className="mt-1 break-words font-semibold text-foreground">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -513,24 +531,6 @@ function parseFields(values: FieldValues) {
   return Object.fromEntries(parsedEntries) as Record<string, number>;
 }
 
-function formatNumber(value: number) {
-  if (Math.abs(value) >= 1000 || (Math.abs(value) > 0 && Math.abs(value) < 0.001)) {
-    return value.toExponential(3);
-  }
-
-  return new Intl.NumberFormat("en", {
-    maximumFractionDigits: 4,
-  }).format(value);
-}
-
-function formatPValue(value: number) {
-  if (value < 0.0001) {
-    return "< 0.0001";
-  }
-
-  return formatNumber(value);
-}
-
 function interpretResult(result: TTestResult) {
   const direction =
     result.alternative === "two-sided"
@@ -538,8 +538,7 @@ function interpretResult(result: TTestResult) {
       : result.alternative === "greater"
         ? "a positive difference"
         : "a negative difference";
-  const thresholdText =
-    result.pValue < 0.05 ? "below" : "not below";
+  const thresholdText = result.pValue < 0.05 ? "below" : "not below";
 
   return `For ${direction}, the p-value is ${formatPValue(result.pValue)}. It is ${thresholdText} 0.05, so interpret the result together with the study design, assumptions, and practical size of the estimated difference.`;
 }
