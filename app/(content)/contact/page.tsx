@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { StructuredData } from "@/components/content/StructuredData";
+import { contactPageJsonLd } from "@/lib/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata = createMetadata({
@@ -9,8 +11,11 @@ export const metadata = createMetadata({
 });
 
 export default function ContactPage() {
+  const jsonLd = contactPageJsonLd();
+
   return (
     <div className="container py-12 md:py-16">
+      <StructuredData data={jsonLd} />
       <article className="max-w-3xl space-y-10">
         <div className="space-y-4">
           <h1 className="text-3xl font-semibold tracking-normal md:text-4xl">

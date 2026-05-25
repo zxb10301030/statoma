@@ -5,6 +5,7 @@ const organizationId = `${absoluteUrl("/")}#organization`;
 const websiteId = `${absoluteUrl("/")}#website`;
 const educatorId = `${absoluteUrl("/about/")}#educator`;
 const calculatorListId = `${absoluteUrl("/calculators/")}#calculator-list`;
+const contactPageId = `${absoluteUrl("/contact/")}#contact-page`;
 
 type SoftwareApplicationInput = {
   name: string;
@@ -131,6 +132,27 @@ export function calculatorItemListJsonLd(items: readonly CalculatorListInput[]) 
         },
       };
     }),
+  };
+}
+
+export function contactPageJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": contactPageId,
+    name: "Contact Statoma",
+    description:
+      "Contact Statoma for statistics calculator feedback, corrections, content requests, and site questions.",
+    url: absoluteUrl("/contact/"),
+    mainEntity: {
+      "@id": organizationId,
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: contactEmail,
+      contactType: "general inquiries",
+      availableLanguage: "en",
+    },
   };
 }
 
