@@ -1,5 +1,9 @@
 import { absoluteUrl, siteName } from "@/lib/seo/metadata";
 
+const contactEmail = "contact@statoma.com";
+const organizationId = `${absoluteUrl("/")}#organization`;
+const educatorId = `${absoluteUrl("/about/")}#educator`;
+
 type SoftwareApplicationInput = {
   name: string;
   description: string;
@@ -30,6 +34,46 @@ export function softwareApplicationJsonLd({
       url: absoluteUrl("/"),
     },
   };
+}
+
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": organizationId,
+    name: siteName,
+    url: absoluteUrl("/"),
+    description:
+      "Statoma is an educational statistics calculator suite that explains methods, assumptions, and interpretation alongside each result.",
+    email: contactEmail,
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: contactEmail,
+      contactType: "general inquiries",
+      availableLanguage: "en",
+    },
+  };
+}
+
+export function educatorPersonJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": educatorId,
+    name: "Statoma educator",
+    jobTitle: "Math educator",
+    description:
+      "A working math educator who builds Statoma as an educational statistics calculator suite.",
+    url: absoluteUrl("/about/"),
+    worksFor: {
+      "@id": organizationId,
+    },
+    mainEntityOfPage: absoluteUrl("/about/"),
+  };
+}
+
+export function aboutPageJsonLd() {
+  return [organizationJsonLd(), educatorPersonJsonLd()];
 }
 
 export function faqPageJsonLd(items: FAQItem[]) {

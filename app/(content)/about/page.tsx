@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { StructuredData } from "@/components/content/StructuredData";
+import { aboutPageJsonLd } from "@/lib/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata = createMetadata({
@@ -9,8 +11,13 @@ export const metadata = createMetadata({
 });
 
 export default function AboutPage() {
+  const jsonLd = aboutPageJsonLd();
+
   return (
     <div className="container py-12 md:py-16">
+      {jsonLd.map((entry) => (
+        <StructuredData key={entry["@id"]} data={entry} />
+      ))}
       <article className="max-w-3xl space-y-10">
         <div className="space-y-4">
           <h1 className="text-3xl font-semibold tracking-normal md:text-4xl">
