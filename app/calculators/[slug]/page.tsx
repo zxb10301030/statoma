@@ -5,6 +5,7 @@ import { ConfidenceIntervalCalculator } from "@/components/calculator/Confidence
 import { CalculatorLayout } from "@/components/calculator/CalculatorLayout";
 import { PValueCalculator } from "@/components/calculator/PValueCalculator";
 import { RelatedCalculators } from "@/components/calculator/RelatedCalculators";
+import { SampleSizeCalculator } from "@/components/calculator/SampleSizeCalculator";
 import { TTestCalculator } from "@/components/calculator/TTestCalculator";
 import { FAQ } from "@/components/content/FAQ";
 import { Formula } from "@/components/content/Formula";
@@ -89,6 +90,29 @@ const confidenceIntervalFaqs = [
   },
 ];
 
+const sampleSizeFaqs = [
+  {
+    question: "What does a sample size calculator estimate?",
+    answer:
+      "It estimates the minimum number of observations needed to reach a target margin of error or power under stated planning assumptions.",
+  },
+  {
+    question: "Why does a smaller margin of error need a larger sample?",
+    answer:
+      "Margin of error shrinks with the square root of sample size, so cutting the margin in half usually needs about four times as many observations.",
+  },
+  {
+    question: "What does statistical power mean?",
+    answer:
+      "Power is the probability that a planned test detects an effect of a specified size when that effect is really present.",
+  },
+  {
+    question: "Should I add extra sample for attrition?",
+    answer:
+      "Yes. The calculator gives the analyzable sample size before dropouts, unusable responses, exclusions, or design effects are added.",
+  },
+];
+
 type CalculatorPageProps = {
   params: Promise<{
     slug: string;
@@ -140,6 +164,10 @@ export default async function CalculatorStubPage({
 
   if (calculator.slug === "confidence-interval") {
     return <ConfidenceIntervalPage calculator={calculator} />;
+  }
+
+  if (calculator.slug === "sample-size") {
+    return <SampleSizePage calculator={calculator} />;
   }
 
   const statusQuestion = `Is the ${calculator.name} available yet?`;
@@ -864,6 +892,268 @@ function ConfidenceIntervalEducationalContent() {
             {
               title: "Treating overlap as a formal test",
               body: "Two intervals overlapping or not overlapping is not the same as a planned hypothesis test for a difference.",
+            },
+          ].map((mistake) => (
+            <section key={mistake.title} className="rounded-lg border p-4">
+              <h3 className="font-semibold">{mistake.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {mistake.body}
+              </p>
+            </section>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SampleSizePage({
+  calculator,
+}: {
+  calculator: NonNullable<ReturnType<typeof getCalculatorBySlug>>;
+}) {
+  const jsonLd = [
+    softwareApplicationJsonLd({
+      name: calculator.name,
+      description: calculator.description,
+      path: "/calculators/sample-size/",
+    }),
+    faqPageJsonLd(sampleSizeFaqs),
+  ];
+
+  return (
+    <div className="container py-10 md:py-14">
+      {jsonLd.map((entry) => (
+        <StructuredData key={entry["@type"]} data={entry} />
+      ))}
+      <article className="space-y-12">
+        <div className="max-w-3xl space-y-4">
+          <p className="text-sm font-medium uppercase tracking-normal text-primary">
+            Sample size calculator
+          </p>
+          <h1 className="text-3xl font-semibold tracking-normal md:text-5xl">
+            Sample size calculator
+          </h1>
+          <p className="text-lg leading-8 text-muted-foreground">
+            Plan survey precision or two-group power before collecting data,
+            with assumptions shown alongside the required sample size.
+          </p>
+        </div>
+
+        <CalculatorLayout>
+          <div className="space-y-8">
+            <SampleSizeCalculator />
+            <section className="space-y-3">
+              <h2 className="text-2xl font-semibold">
+                Interpreting the result
+              </h2>
+              <p className="leading-7 text-muted-foreground">
+                The result is a planning estimate, not a guarantee. It tells
+                you how many analyzable observations are needed if the entered
+                assumptions are reasonable and the eventual analysis matches
+                the planned design. If the study will lose participants,
+                remove incomplete surveys, cluster observations, or apply
+                complex weighting, treat the calculator result as the base
+                analyzable number and add a design-specific allowance.
+              </p>
+            </section>
+          </div>
+          <aside className="space-y-5 rounded-lg border bg-muted/30 p-5">
+            <h2 className="text-lg font-semibold">Before you calculate</h2>
+            <ul className="space-y-3 text-sm leading-6 text-muted-foreground">
+              <li>Enter proportions as decimals between 0 and 1.</li>
+              <li>Use absolute effects, not relative percent lifts.</li>
+              <li>Choose power and alpha before seeing study results.</li>
+              <li>Add attrition, exclusions, or design effects afterward.</li>
+            </ul>
+          </aside>
+        </CalculatorLayout>
+
+        <SampleSizeEducationalContent />
+        <FAQ items={sampleSizeFaqs} />
+        <RelatedCalculators currentSlug="sample-size" />
+      </article>
+    </div>
+  );
+}
+
+function SampleSizeEducationalContent() {
+  return (
+    <div className="max-w-3xl space-y-10">
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">What is this calculator?</h2>
+        <p className="leading-7 text-muted-foreground">
+          A sample size calculation turns a study goal into a minimum number of
+          analyzable observations. The goal can be precision, such as estimating
+          a survey proportion within a chosen margin of error, or power, such
+          as detecting a difference between two groups if that difference is
+          truly present. Statoma separates those two planning questions because
+          they answer different practical problems. A margin-of-error plan asks
+          how narrow an estimate should be. A power plan asks how likely a
+          planned hypothesis test is to detect an effect of a specified size.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          The calculator uses standard introductory planning formulas for one
+          proportion, one mean, two proportions, and two means. These formulas
+          are intentionally transparent: they rely on normal critical values,
+          equal allocation for two-group comparisons, and summary assumptions
+          that can be reviewed before data collection begins. That transparency
+          is useful in teaching, grant planning, survey design, and early study
+          scoping, but it also means the result should be checked against the
+          actual sampling design.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          A required sample size is not the same as the number of people to
+          invite, records to request, or responses to start. It is the number
+          needed after missing data, exclusions, nonresponse, and eligibility
+          screening have been handled. If a survey expects incomplete responses
+          or a study expects dropouts, the recruitment target must be larger
+          than the analyzable sample returned here. The more fragile the data
+          collection process, the more important that allowance becomes.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">When to use it</h2>
+        <ul className="list-disc space-y-3 pl-6 leading-7 text-muted-foreground">
+          <li>
+            Use survey proportion mode when the target is a population share,
+            rate, or percentage and the planning question is a margin of error.
+          </li>
+          <li>
+            Use survey mean mode when the target is an average and you have a
+            planning estimate of the outcome standard deviation.
+          </li>
+          <li>
+            Use two-proportion power mode when two independent groups will be
+            compared on a binary outcome such as a response, success, or
+            conversion rate.
+          </li>
+          <li>
+            Use two-mean power mode when two independent groups will be
+            compared on a numeric outcome and a common planning standard
+            deviation is reasonable.
+          </li>
+          <li>
+            Use a separate specialist design calculation when observations are
+            clustered, paired, repeated over time, heavily weighted, or assigned
+            in unequal group sizes.
+          </li>
+        </ul>
+        <p className="leading-7 text-muted-foreground">
+          The best mode follows the design, not the result you hope to see. If
+          the final report will estimate a single population value, use a
+          precision mode. If the final report will compare two groups with a
+          hypothesis test, use a power mode. Mixing those goals can produce a
+          number that looks precise but does not protect the study from being
+          underpowered for its actual question.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">How it works</h2>
+        <p className="leading-7 text-muted-foreground">
+          For a single proportion, the calculator starts from the familiar
+          normal-approximation margin of error formula. The planned proportion
+          controls the variance term, the confidence level controls the
+          critical value, and the target margin of error controls how much
+          uncertainty is acceptable. Smaller margins and higher confidence
+          levels require larger samples.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`n = \frac{z_{1-\alpha/2}^{2}p(1-p)}{e^2}`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          In this formula, p is the planning proportion, e is the target margin
+          of error on the proportion scale, and z is the standard normal
+          critical value for the chosen confidence level. For a mean, the same
+          structure uses the planning standard deviation instead of the
+          proportion variance. The margin of error must be in the same unit as
+          the outcome.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`n = \left(\frac{z_{1-\alpha/2}\sigma}{e}\right)^2`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          Power calculations add a second critical value. Alpha controls how
+          often the test is allowed to signal an effect when the null model is
+          true. Power controls how often the test should detect the specified
+          effect when that effect is real. For equal-size two-sample mean
+          comparisons, the planning approximation is based on the combined
+          alpha and power critical values, the standard deviation, and the
+          minimum detectable difference.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`n_{\text{per group}} = 2\left(\frac{(z_{1-\alpha/2}+z_{1-\beta})\sigma}{\Delta}\right)^2`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          Two-proportion power calculations use the same idea but replace the
+          standard deviation with binomial variance terms for the baseline rate
+          and comparison rate. Statoma treats the minimum detectable effect as
+          an absolute change. For example, moving from 0.40 to 0.45 is an
+          absolute change of 0.05. A relative lift would need to be converted to
+          the resulting absolute change before entering it.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Worked example</h2>
+        <p className="leading-7 text-muted-foreground">
+          Suppose a researcher wants to estimate a population proportion with a
+          95% confidence level and a margin of error of 0.05. If there is no
+          reliable prior estimate, using 0.50 for the planning proportion is a
+          conservative choice because p(1-p) is largest at 0.50. The calculator
+          uses the 95% normal critical value and returns 385 analyzable
+          responses for the simple random-sample approximation.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          That does not mean 385 invitations are enough. If the survey team
+          expects only half of invited people to complete the survey, the
+          invitation count would need to be much larger. If the survey uses a
+          complex design, the design effect may also inflate the required
+          number. The calculator result is the clean statistical core; the
+          operations plan still has to account for how data are actually
+          collected.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          For a power example, suppose an experiment compares two independent
+          groups and wants to detect an absolute rate change from 0.40 to 0.45
+          with 80% power at alpha 0.05. The resulting per-group sample is large
+          because a five-point absolute difference is modest relative to the
+          variability of a binary outcome. If that sample is unrealistic, the
+          honest next step is to revisit the effect size, allocation, outcome
+          definition, or study design rather than reporting a small study as if
+          it had the desired power.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Common mistakes</h2>
+        <div className="grid gap-4">
+          {[
+            {
+              title: "Entering percentages as whole numbers",
+              body: "Use 0.05 for a five percentage-point margin of error, not 5. The formulas work on the proportion scale.",
+            },
+            {
+              title: "Treating the result as a recruitment count",
+              body: "The output is the analyzable sample size. Recruitment targets usually need to be larger after nonresponse, attrition, and exclusions are considered.",
+            },
+            {
+              title: "Using an optimistic standard deviation",
+              body: "A too-small planning standard deviation makes a study look easier than it is. Use pilot data, prior literature, or a conservative sensitivity check.",
+            },
+            {
+              title: "Confusing absolute and relative effects",
+              body: "The power modes use absolute differences. A relative lift must be translated into the resulting difference on the original outcome scale.",
+            },
+            {
+              title: "Changing power assumptions after seeing feasibility",
+              body: "Lowering power or raising alpha can make the required sample smaller, but it also changes the error behavior of the planned test.",
+            },
+            {
+              title: "Ignoring clustering or repeated measurements",
+              body: "Simple formulas assume independent observations. Clustered classrooms, clinics, households, or repeated measures often need a design effect or a different model.",
             },
           ].map((mistake) => (
             <section key={mistake.title} className="rounded-lg border p-4">
