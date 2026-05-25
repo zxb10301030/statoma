@@ -2,6 +2,7 @@ import { absoluteUrl, siteName } from "@/lib/seo/metadata";
 
 const contactEmail = "contact@statoma.com";
 const organizationId = `${absoluteUrl("/")}#organization`;
+const websiteId = `${absoluteUrl("/")}#website`;
 const educatorId = `${absoluteUrl("/about/")}#educator`;
 
 type SoftwareApplicationInput = {
@@ -74,6 +75,22 @@ export function educatorPersonJsonLd() {
 
 export function aboutPageJsonLd() {
   return [organizationJsonLd(), educatorPersonJsonLd()];
+}
+
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": websiteId,
+    name: siteName,
+    url: absoluteUrl("/"),
+    description:
+      "A free, modern statistics calculator suite that explains each step so users can understand the result, not just copy a number.",
+    inLanguage: "en",
+    publisher: {
+      "@id": organizationId,
+    },
+  };
 }
 
 export function faqPageJsonLd(items: FAQItem[]) {

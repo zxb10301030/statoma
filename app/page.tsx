@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { CalculatorGrid } from "@/components/calculator/CalculatorGrid";
+import { StructuredData } from "@/components/content/StructuredData";
+import { websiteJsonLd } from "@/lib/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata = createMetadata({
@@ -10,8 +12,11 @@ export const metadata = createMetadata({
 });
 
 export default function HomePage() {
+  const jsonLd = websiteJsonLd();
+
   return (
     <div className="container py-12 md:py-16">
+      <StructuredData data={jsonLd} />
       <section className="max-w-3xl space-y-4">
         <h1 className="text-4xl font-semibold tracking-normal text-foreground md:text-5xl">
           Statistics calculators that show you how.
