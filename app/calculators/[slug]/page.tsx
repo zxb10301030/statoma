@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BlockMath } from "react-katex";
 import { notFound } from "next/navigation";
 import { CalculatorLayout } from "@/components/calculator/CalculatorLayout";
+import { PValueCalculator } from "@/components/calculator/PValueCalculator";
 import { RelatedCalculators } from "@/components/calculator/RelatedCalculators";
 import { TTestCalculator } from "@/components/calculator/TTestCalculator";
 import { FAQ } from "@/components/content/FAQ";
@@ -38,6 +39,29 @@ const tTestFaqs = [
     question: "Is a small p-value the same as a large effect?",
     answer:
       "No. A p-value measures compatibility with the null hypothesis, while effect size describes the practical size of the difference.",
+  },
+];
+
+const pValueFaqs = [
+  {
+    question: "What does a p-value measure?",
+    answer:
+      "A p-value measures how surprising the observed statistic would be if the null model and its assumptions were true.",
+  },
+  {
+    question: "Is a p-value the probability that the null hypothesis is true?",
+    answer:
+      "No. It is a probability calculated under the null hypothesis, not the probability that the hypothesis itself is true.",
+  },
+  {
+    question: "Which tail should I choose?",
+    answer:
+      "Choose the tail that matches the alternative hypothesis planned before looking at the data.",
+  },
+  {
+    question: "Can chi-square and F statistics be two-sided?",
+    answer:
+      "Most common chi-square and F tests use right-tail p-values because larger statistics indicate stronger departure from the null model.",
   },
 ];
 
@@ -84,6 +108,10 @@ export default async function CalculatorStubPage({
 
   if (calculator.slug === "t-test") {
     return <TTestPage calculator={calculator} />;
+  }
+
+  if (calculator.slug === "p-value") {
+    return <PValuePage calculator={calculator} />;
   }
 
   const statusQuestion = `Is the ${calculator.name} available yet?`;
@@ -372,6 +400,227 @@ function TTestEducationalContent() {
             {
               title: "Ignoring the shape of the data",
               body: "The t-test is fairly robust in many settings, but severe skew, outliers, or dependent observations can make the p-value misleading.",
+            },
+          ].map((mistake) => (
+            <section key={mistake.title} className="rounded-lg border p-4">
+              <h3 className="font-semibold">{mistake.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {mistake.body}
+              </p>
+            </section>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PValuePage({
+  calculator,
+}: {
+  calculator: NonNullable<ReturnType<typeof getCalculatorBySlug>>;
+}) {
+  const jsonLd = [
+    softwareApplicationJsonLd({
+      name: calculator.name,
+      description: calculator.description,
+      path: "/calculators/p-value/",
+    }),
+    faqPageJsonLd(pValueFaqs),
+  ];
+
+  return (
+    <div className="container py-10 md:py-14">
+      {jsonLd.map((entry) => (
+        <StructuredData key={entry["@type"]} data={entry} />
+      ))}
+      <article className="space-y-12">
+        <div className="max-w-3xl space-y-4">
+          <p className="text-sm font-medium uppercase tracking-normal text-primary">
+            P-value calculator
+          </p>
+          <h1 className="text-3xl font-semibold tracking-normal md:text-5xl">
+            P-value calculator
+          </h1>
+          <p className="text-lg leading-8 text-muted-foreground">
+            Convert z, t, chi-square, and F statistics into p-values using the
+            distribution and tail area that match your statistical test.
+          </p>
+        </div>
+
+        <CalculatorLayout>
+          <div className="space-y-8">
+            <PValueCalculator />
+            <section className="space-y-3">
+              <h2 className="text-2xl font-semibold">
+                Interpreting the result
+              </h2>
+              <p className="leading-7 text-muted-foreground">
+                The p-value is the probability, under the selected null model,
+                of observing a statistic in the chosen tail area that is at
+                least as extreme as the statistic you entered. It is not the
+                probability that the null hypothesis is true, and it is not the
+                probability that the result happened by chance. A small p-value
+                means the observed statistic is relatively unusual under the
+                null model and assumptions.
+              </p>
+            </section>
+          </div>
+          <aside className="space-y-5 rounded-lg border bg-muted/30 p-5">
+            <h2 className="text-lg font-semibold">Before you calculate</h2>
+            <ul className="space-y-3 text-sm leading-6 text-muted-foreground">
+              <li>Use the statistic from the test you already planned.</li>
+              <li>Choose the tail before looking at the observed direction.</li>
+              <li>Use right-tail areas for most chi-square and F tests.</li>
+              <li>Report the test statistic and degrees of freedom too.</li>
+            </ul>
+          </aside>
+        </CalculatorLayout>
+
+        <PValueEducationalContent />
+        <FAQ items={pValueFaqs} />
+        <RelatedCalculators currentSlug="p-value" />
+      </article>
+    </div>
+  );
+}
+
+function PValueEducationalContent() {
+  return (
+    <div className="max-w-3xl space-y-10">
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">What is this test?</h2>
+        <p className="leading-7 text-muted-foreground">
+          This calculator does not create a test statistic from raw data.
+          Instead, it takes a statistic that was already calculated by a
+          statistical test and converts it into a tail probability. That tail
+          probability is the p-value. The input can be a z statistic from a
+          standard normal model, a t statistic with degrees of freedom, a
+          chi-square statistic with degrees of freedom, or an F statistic with
+          numerator and denominator degrees of freedom.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          The distribution choice is not interchangeable. A statistic of 2 can
+          mean different things under a normal distribution, a t distribution
+          with few degrees of freedom, a chi-square distribution, or an F
+          distribution. Degrees of freedom change the shape of the reference
+          distribution, which changes the tail area. A p-value calculator is
+          therefore only as trustworthy as the test statistic, degrees of
+          freedom, and tail choice entered into it.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          The p-value is a statement about the statistic under the null model.
+          It is not a direct measure of effect size, scientific importance,
+          practical value, or replication probability. It should be reported
+          alongside the estimate that produced the statistic, the test
+          definition, the sample size, and the assumptions that make the
+          reference distribution reasonable.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">When to use it</h2>
+        <ul className="list-disc space-y-3 pl-6 leading-7 text-muted-foreground">
+          <li>
+            Use the z option when your test statistic follows a standard normal
+            reference distribution, such as large-sample z tests or normal
+            approximations.
+          </li>
+          <li>
+            Use the t option when your statistic follows a t distribution and
+            you know the relevant degrees of freedom.
+          </li>
+          <li>
+            Use the chi-square option for tests where larger chi-square values
+            indicate greater departure from the null model, such as many
+            goodness-of-fit and independence tests.
+          </li>
+          <li>
+            Use the F option for variance-ratio tests and model comparison
+            settings where the statistic follows an F distribution.
+          </li>
+          <li>
+            Use a two-sided tail only for symmetric z and t statistics when
+            departures in either direction count as evidence against the null.
+          </li>
+        </ul>
+        <p className="leading-7 text-muted-foreground">
+          If you are unsure which distribution generated the statistic, step
+          back to the original test rather than trying several options. The
+          same number can produce several different p-values, and only one of
+          them answers the statistical question implied by the model.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">How it works</h2>
+        <p className="leading-7 text-muted-foreground">
+          A p-value is a tail area. For a right-tail test, the calculator finds
+          the probability that the reference distribution would produce a value
+          greater than or equal to the observed statistic. For a left-tail test,
+          it finds the probability of a value less than or equal to the observed
+          statistic. For a two-sided z or t test, it doubles the smaller tail
+          area because values equally extreme in either direction count against
+          the null hypothesis.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`p = 2 \min\{F(x), 1 - F(x)\}`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          In the formula, F is the cumulative distribution function for the
+          selected reference distribution, and x is the observed statistic. For
+          chi-square and F tests, the common evidence direction is usually the
+          right tail because larger statistics represent larger departures from
+          the null model. Left-tail areas can still be useful in specialized
+          settings, but they should be chosen because the test calls for them.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Worked example</h2>
+        <p className="leading-7 text-muted-foreground">
+          Suppose a regression model comparison reports an F statistic of 3
+          with 2 numerator degrees of freedom and 20 denominator degrees of
+          freedom. Because larger F statistics indicate stronger evidence
+          against the null model in this setting, the correct p-value is a
+          right-tail area. The calculator evaluates the F distribution with
+          those two degrees-of-freedom values and returns the probability of
+          seeing a statistic of 3 or larger if the null model were adequate.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          That probability is not the probability that the bigger model is
+          correct. It also does not say whether the extra predictors are
+          practically useful. It tells you how unusual the observed F statistic
+          would be under the null comparison. A complete interpretation would
+          include the models being compared, the observed statistic, both
+          degrees of freedom, the p-value, and the practical reason the model
+          comparison matters.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Common mistakes</h2>
+        <div className="grid gap-4">
+          {[
+            {
+              title: "Using the wrong reference distribution",
+              body: "A z statistic, t statistic, chi-square statistic, and F statistic do not share the same tail areas. Choose the distribution from the original test definition.",
+            },
+            {
+              title: "Forgetting degrees of freedom",
+              body: "Degrees of freedom change the shape of t, chi-square, and F distributions. A statistic without its degrees of freedom is usually not enough to recover the correct p-value.",
+            },
+            {
+              title: "Choosing the tail after seeing the statistic",
+              body: "The tail direction belongs to the planned alternative hypothesis. Choosing it after observing the result makes the evidence look cleaner than the analysis plan supports.",
+            },
+            {
+              title: "Treating p < 0.05 as the whole conclusion",
+              body: "A threshold can be useful, but it cannot replace the estimate, assumptions, design quality, uncertainty, and practical size of the effect.",
+            },
+            {
+              title: "Calling a p-value the chance of randomness",
+              body: "A p-value is calculated under a model. It is not a general probability that the result is random, false, or meaningless.",
             },
           ].map((mistake) => (
             <section key={mistake.title} className="rounded-lg border p-4">
