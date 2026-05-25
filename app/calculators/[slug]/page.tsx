@@ -362,7 +362,7 @@ function TTestEducationalContent() {
           difference is the sample mean minus the hypothesized mean.
         </p>
         <Formula>
-          <BlockMath math={String.raw`t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}`} />
+          <BlockMath math={String.raw`t = \frac{\bar{x} - \mu_0}{s / \sqrt{n}}`} />
         </Formula>
         <p className="leading-7 text-muted-foreground">
           In this formula, the sample mean is the observed average, the
