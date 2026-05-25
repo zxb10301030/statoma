@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BlockMath } from "react-katex";
 import { notFound } from "next/navigation";
+import { ChiSquareCalculator } from "@/components/calculator/ChiSquareCalculator";
 import { ConfidenceIntervalCalculator } from "@/components/calculator/ConfidenceIntervalCalculator";
 import { CalculatorLayout } from "@/components/calculator/CalculatorLayout";
 import { PValueCalculator } from "@/components/calculator/PValueCalculator";
@@ -10,11 +11,7 @@ import { TTestCalculator } from "@/components/calculator/TTestCalculator";
 import { FAQ } from "@/components/content/FAQ";
 import { Formula } from "@/components/content/Formula";
 import { StructuredData } from "@/components/content/StructuredData";
-import {
-  calculators,
-  getCalculatorBySlug,
-  type CalculatorSlug,
-} from "@/lib/calculators";
+import { calculators, getCalculatorBySlug } from "@/lib/calculators";
 import { createMetadata } from "@/lib/seo/metadata";
 import {
   faqPageJsonLd,
@@ -113,6 +110,29 @@ const sampleSizeFaqs = [
   },
 ];
 
+const chiSquareFaqs = [
+  {
+    question: "What does a chi-square test compare?",
+    answer:
+      "A chi-square test compares observed categorical counts with counts expected under a null model.",
+  },
+  {
+    question: "When should I use goodness of fit?",
+    answer:
+      "Use goodness of fit when one categorical variable is compared with a specified expected distribution.",
+  },
+  {
+    question: "When should I use a chi-square test of independence?",
+    answer:
+      "Use independence when two categorical variables are summarized in a contingency table and you want to test whether their distributions are associated.",
+  },
+  {
+    question: "Why do small expected counts matter?",
+    answer:
+      "The chi-square approximation can be unreliable when expected cell counts are very small, so exact or simulation methods may be better.",
+  },
+];
+
 type CalculatorPageProps = {
   params: Promise<{
     slug: string;
@@ -170,51 +190,11 @@ export default async function CalculatorStubPage({
     return <SampleSizePage calculator={calculator} />;
   }
 
-  const statusQuestion = `Is the ${calculator.name} available yet?`;
-  const statusAnswer =
-    "This calculator page is reserved for the first Statoma release and will be implemented without server-side calculation code.";
+  if (calculator.slug === "chi-square") {
+    return <ChiSquarePage calculator={calculator} />;
+  }
 
-  const jsonLd = [
-    softwareApplicationJsonLd({
-      name: calculator.name,
-      description: calculator.description,
-      path: `/calculators/${calculator.slug as CalculatorSlug}/`,
-    }),
-    faqPageJsonLd([
-      {
-        question: statusQuestion,
-        answer: statusAnswer,
-      },
-    ]),
-  ];
-
-  return (
-    <div className="container py-12 md:py-16">
-      {jsonLd.map((entry) => (
-        <script
-          key={entry["@type"]}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(entry) }}
-        />
-      ))}
-      <article className="max-w-3xl space-y-6">
-        <div className="space-y-3">
-          <h1 className="text-3xl font-semibold tracking-normal md:text-4xl">
-            {calculator.name}
-          </h1>
-          <p className="text-base leading-7 text-muted-foreground">
-            Coming soon. {calculator.description}
-          </p>
-        </div>
-        <section className="space-y-2 rounded-lg border bg-card p-5">
-          <h2 className="text-lg font-semibold">{statusQuestion}</h2>
-          <p className="text-sm leading-6 text-muted-foreground">
-            {statusAnswer}
-          </p>
-        </section>
-      </article>
-    </div>
-  );
+  notFound();
 }
 
 function TTestPage({
@@ -1154,6 +1134,290 @@ function SampleSizeEducationalContent() {
             {
               title: "Ignoring clustering or repeated measurements",
               body: "Simple formulas assume independent observations. Clustered classrooms, clinics, households, or repeated measures often need a design effect or a different model.",
+            },
+          ].map((mistake) => (
+            <section key={mistake.title} className="rounded-lg border p-4">
+              <h3 className="font-semibold">{mistake.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {mistake.body}
+              </p>
+            </section>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ChiSquarePage({
+  calculator,
+}: {
+  calculator: NonNullable<ReturnType<typeof getCalculatorBySlug>>;
+}) {
+  const jsonLd = [
+    softwareApplicationJsonLd({
+      name: calculator.name,
+      description: calculator.description,
+      path: "/calculators/chi-square/",
+    }),
+    faqPageJsonLd(chiSquareFaqs),
+  ];
+
+  return (
+    <div className="container py-10 md:py-14">
+      {jsonLd.map((entry) => (
+        <StructuredData key={entry["@type"]} data={entry} />
+      ))}
+      <article className="space-y-12">
+        <div className="max-w-3xl space-y-4">
+          <p className="text-sm font-medium uppercase tracking-normal text-primary">
+            Chi-square calculator
+          </p>
+          <h1 className="text-3xl font-semibold tracking-normal md:text-5xl">
+            Chi-square calculator
+          </h1>
+          <p className="text-lg leading-8 text-muted-foreground">
+            Test categorical counts for goodness of fit or independence, with
+            expected counts and cell contributions shown beside the result.
+          </p>
+        </div>
+
+        <CalculatorLayout>
+          <div className="space-y-8">
+            <ChiSquareCalculator />
+            <section className="space-y-3">
+              <h2 className="text-2xl font-semibold">
+                Interpreting the result
+              </h2>
+              <p className="leading-7 text-muted-foreground">
+                The chi-square statistic measures how far observed counts are
+                from the counts expected under the null model. A larger
+                statistic means the observed pattern is farther from that null
+                model. The p-value is a right-tail probability from the
+                chi-square distribution with the reported degrees of freedom.
+                Read the p-value together with the expected counts, because a
+                small p-value can come from one influential cell, many modest
+                departures, or a large sample that makes tiny differences look
+                statistically clear.
+              </p>
+            </section>
+          </div>
+          <aside className="space-y-5 rounded-lg border bg-muted/30 p-5">
+            <h2 className="text-lg font-semibold">Before you calculate</h2>
+            <ul className="space-y-3 text-sm leading-6 text-muted-foreground">
+              <li>Use counts, not percentages or proportions.</li>
+              <li>Keep categories mutually exclusive and exhaustive.</li>
+              <li>Check expected counts before trusting the approximation.</li>
+              <li>Use independence mode only for a two-way table.</li>
+            </ul>
+          </aside>
+        </CalculatorLayout>
+
+        <ChiSquareEducationalContent />
+        <FAQ items={chiSquareFaqs} />
+        <RelatedCalculators currentSlug="chi-square" />
+      </article>
+    </div>
+  );
+}
+
+function ChiSquareEducationalContent() {
+  return (
+    <div className="max-w-3xl space-y-10">
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">What is this test?</h2>
+        <p className="leading-7 text-muted-foreground">
+          A chi-square test is a method for comparing categorical counts with
+          counts expected under a null model. The data are not raw measurements
+          like heights, scores, or times. They are counts in categories, such
+          as survey choices, outcome groups, product types, diagnosis classes,
+          or rows and columns in a contingency table. The test asks whether the
+          differences between observed and expected counts are larger than
+          ordinary sampling variation would explain under the stated model.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          Statoma supports two common versions. The goodness-of-fit test uses
+          one categorical variable and a specified expected count for each
+          category. It answers questions such as whether observed choices match
+          a planned distribution. The test of independence uses a two-way
+          table. It answers whether the distribution of one categorical
+          variable appears to change across the levels of another categorical
+          variable.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          Both versions use the same statistic. Each cell contributes a squared
+          difference between observed and expected count, divided by the
+          expected count. Squaring removes signs and makes larger discrepancies
+          count more heavily. Dividing by the expected count keeps the scale
+          comparable across cells. The final statistic is compared with a
+          chi-square distribution whose degrees of freedom depend on the test
+          structure.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          The test is useful because it turns a categorical pattern into a
+          transparent diagnostic number, but it is not a complete explanation.
+          A significant result says the pattern is unlikely under the null
+          model. It does not say which categories matter most, whether the
+          association is strong, or whether the study design supports a causal
+          claim. The expected counts and cell contributions are the first place
+          to look after the p-value.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">When to use it</h2>
+        <ul className="list-disc space-y-3 pl-6 leading-7 text-muted-foreground">
+          <li>
+            Use goodness of fit when you have one categorical variable and a
+            clear expected count for each category under the null model.
+          </li>
+          <li>
+            Use goodness of fit when checking whether observed frequencies
+            follow a theoretical, historical, design-based, or planned
+            distribution.
+          </li>
+          <li>
+            Use the independence test when two categorical variables are cross
+            tabulated and the question is whether their distributions are
+            associated.
+          </li>
+          <li>
+            Use counts from independent observations. Repeated measurements on
+            the same unit, paired categories, or clustered sampling often need a
+            different method.
+          </li>
+          <li>
+            Use another method when expected counts are very small. Exact tests
+            or simulation-based approaches may be more reliable in sparse
+            tables.
+          </li>
+        </ul>
+        <p className="leading-7 text-muted-foreground">
+          The key design question is whether the categories represent one
+          distribution or a two-way relationship. In a goodness-of-fit problem,
+          expected counts come from outside the data, such as a known market
+          share, a genetic ratio, a fair random mechanism, or a preregistered
+          target. In an independence problem, expected counts are calculated
+          from the row totals, column totals, and grand total. That difference
+          changes the degrees of freedom and the meaning of the expected
+          values.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          It is also important that categories are mutually exclusive. If one
+          respondent can appear in more than one category, the counts are not
+          independent category totals in the usual sense. If categories leave
+          some observations out, the expected distribution may no longer match
+          the observed total. A clean chi-square test starts with a clean count
+          table.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">How it works</h2>
+        <p className="leading-7 text-muted-foreground">
+          The chi-square statistic is the sum of cell contributions. Each
+          contribution compares an observed count with its expected count under
+          the null model. The more a cell differs from expectation, the larger
+          its contribution. Cells with larger expected counts need larger raw
+          differences to contribute the same amount as cells with smaller
+          expected counts.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`\chi^2 = \sum \frac{(O_i - E_i)^2}{E_i}`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          In a goodness-of-fit test, O is the observed count in a category and
+          E is the expected count for that same category. If there are k
+          categories and all expected counts are fixed in advance, the degrees
+          of freedom are k minus 1. Some advanced settings estimate parameters
+          from the data before forming expected counts; those settings reduce
+          degrees of freedom further and are outside this calculator.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`\text{df}_{\text{goodness}} = k - 1`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          In an independence test, expected counts are calculated from the
+          table margins. If the row variable and column variable are
+          independent, the expected count in a cell equals its row total times
+          its column total divided by the grand total. The degrees of freedom
+          are based on how many row and column proportions can vary freely once
+          the margins are fixed.
+        </p>
+        <Formula>
+          <BlockMath math={String.raw`E_{ij} = \frac{(\text{row total}_i)(\text{column total}_j)}{\text{grand total}}`} />
+        </Formula>
+        <Formula>
+          <BlockMath math={String.raw`\text{df}_{\text{independence}} = (r - 1)(c - 1)`} />
+        </Formula>
+        <p className="leading-7 text-muted-foreground">
+          The p-value is the right-tail probability above the observed
+          statistic. Chi-square statistics cannot be negative, and larger
+          values mean more departure from the null model. That is why the
+          usual test looks only to the right tail rather than splitting
+          probability between two tails.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Worked example</h2>
+        <p className="leading-7 text-muted-foreground">
+          Suppose a survey records three response categories with observed
+          counts 50, 30, and 20. A planned distribution expects 40, 40, and 20.
+          The first category contributes (50 - 40)^2 / 40 = 2.5. The second
+          category contributes (30 - 40)^2 / 40 = 2.5. The third category
+          contributes 0 because the observed and expected counts match. The
+          chi-square statistic is therefore 5. With three categories, the
+          degrees of freedom are 2.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          A statistic of 5 with 2 degrees of freedom gives a p-value of about
+          0.0821. That is not the probability that the expected distribution is
+          true. It is the probability of getting a chi-square statistic at
+          least this large if the expected distribution and sampling
+          assumptions were correct. The result suggests some mismatch, but it
+          would usually not cross a 0.05 threshold. The cell contributions show
+          that the mismatch is concentrated in the first two categories.
+        </p>
+        <p className="leading-7 text-muted-foreground">
+          For independence, imagine a two-by-two table where one row has counts
+          20 and 30, and the other row has counts 30 and 20. The row totals are
+          both 50, the column totals are both 50, and the grand total is 100.
+          If the row and column variables were independent, each cell would
+          have expected count 25. The statistic is 4 with 1 degree of freedom,
+          giving a p-value of about 0.0455. That result points to association,
+          but it still does not explain the study design or practical size of
+          the relationship.
+        </p>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">Common mistakes</h2>
+        <div className="grid gap-4">
+          {[
+            {
+              title: "Entering percentages instead of counts",
+              body: "A chi-square test uses counts. Percentages can hide the total sample size, and the total sample size is part of the evidence.",
+            },
+            {
+              title: "Ignoring expected counts",
+              body: "The approximation can be weak when expected counts are very small. Always inspect the expected table before interpreting the p-value.",
+            },
+            {
+              title: "Treating association as causation",
+              body: "A chi-square test of independence can detect association in a table, but it cannot prove that one variable caused the other.",
+            },
+            {
+              title: "Using overlapping categories",
+              body: "Categories should be mutually exclusive for the usual count model. If observations can appear in multiple categories, the test no longer matches the data structure.",
+            },
+            {
+              title: "Reading only the overall p-value",
+              body: "The overall statistic says that the table departs from the null model. Cell contributions show where the departure comes from.",
+            },
+            {
+              title: "Using fixed expected counts with the wrong total",
+              body: "In goodness-of-fit mode, observed and expected counts need the same total. Expected probabilities must be converted to expected counts first.",
             },
           ].map((mistake) => (
             <section key={mistake.title} className="rounded-lg border p-4">
