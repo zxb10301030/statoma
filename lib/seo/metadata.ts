@@ -9,10 +9,13 @@ export const defaultOpenGraphImage = {
   alt: "Statoma - Statistics calculators that show you how.",
 };
 
+type OpenGraphImage = typeof defaultOpenGraphImage;
+
 type PageMetadataInput = {
   title: string;
   description: string;
   path: string;
+  image?: OpenGraphImage;
 };
 
 export function normalizePath(path: string) {
@@ -34,6 +37,7 @@ export function createMetadata({
   title,
   description,
   path,
+  image = defaultOpenGraphImage,
 }: PageMetadataInput): Metadata {
   const url = absoluteUrl(path);
 
@@ -49,13 +53,13 @@ export function createMetadata({
       url,
       siteName,
       type: "website",
-      images: [defaultOpenGraphImage],
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [defaultOpenGraphImage.url],
+      images: [image.url],
     },
   };
 }

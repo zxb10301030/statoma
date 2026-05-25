@@ -12,7 +12,7 @@ import { FAQ } from "@/components/content/FAQ";
 import { Formula } from "@/components/content/Formula";
 import { StructuredData } from "@/components/content/StructuredData";
 import { calculators, getCalculatorBySlug } from "@/lib/calculators";
-import { createMetadata } from "@/lib/seo/metadata";
+import { createMetadata, siteUrl } from "@/lib/seo/metadata";
 import {
   faqPageJsonLd,
   softwareApplicationJsonLd,
@@ -161,6 +161,12 @@ export async function generateMetadata({
     title: `${calculator.name} | Statoma`,
     description: calculator.description,
     path: `/calculators/${calculator.slug}/`,
+    image: {
+      url: `${siteUrl}/calculators/${calculator.slug}/opengraph-image`,
+      width: 1200,
+      height: 630,
+      alt: `${calculator.name} - Statoma`,
+    },
   });
 }
 
